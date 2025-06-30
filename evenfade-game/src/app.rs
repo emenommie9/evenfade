@@ -17,7 +17,8 @@ pub enum AppState {
     Initialized { app: App },
 }
 
-struct App {
+pub struct App {
+    #[allow(dead_code)]
     window: Arc<Window>,
     rendering: Rendering,
 }
