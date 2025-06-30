@@ -1,6 +1,5 @@
 use std::sync::Arc;
 
-use log::info;
 use pollster::FutureExt;
 use wgpu::{
     Backends, Color, Device, DeviceDescriptor, Features, Instance, InstanceDescriptor, Limits,
@@ -89,13 +88,6 @@ impl App {
 
 impl Rendering {
     async fn initialize(window: Arc<Window>) -> Self {
-        info!(
-            "window width {} and height {}, visible = {}",
-            window.inner_size().width,
-            window.inner_size().height,
-            window.is_visible().unwrap_or(false)
-        );
-
         let instance = Instance::new(&InstanceDescriptor {
             backends: Backends::PRIMARY,
             ..Default::default()
