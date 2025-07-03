@@ -470,6 +470,7 @@ dependencies = [
 name = "evenfade-game"
 version = "0.0.1"
 dependencies = [
+ "bytemuck",
  "env_logger",
  "glam",
  "log",

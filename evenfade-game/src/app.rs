@@ -1,11 +1,18 @@
 use std::sync::Arc;
 
+use bytemuck::{Pod, Zeroable, cast_slice};
 use pollster::FutureExt;
 use wgpu::{
-    Backends, Color, Device, DeviceDescriptor, Features, Instance, InstanceDescriptor, Limits,
-    LoadOp, Operations, PowerPreference, Queue, RenderPassColorAttachment, RenderPassDescriptor,
-    RequestAdapterOptions, StoreOp, Surface, SurfaceConfiguration, TextureUsages,
-    TextureViewDescriptor, Trace, wgt::CommandEncoderDescriptor,
+    Backends, BlendState, Buffer, BufferAddress, BufferUsages, Color, ColorTargetState,
+    ColorWrites, Device, DeviceDescriptor, Face, Features, FragmentState, FrontFace, Instance,
+    InstanceDescriptor, Limits, LoadOp, MultisampleState, Operations, PipelineCompilationOptions,
+    PipelineLayoutDescriptor, PolygonMode, PowerPreference, PrimitiveState, PrimitiveTopology,
+    Queue, RenderPassColorAttachment, RenderPassDescriptor, RenderPipeline,
+    RenderPipelineDescriptor, RequestAdapterOptions, ShaderModuleDescriptor, ShaderSource, StoreOp,
+    Surface, SurfaceConfiguration, TextureUsages, TextureViewDescriptor, Trace, VertexAttribute,
+    VertexBufferLayout, VertexFormat, VertexState, VertexStepMode,
+    util::{BufferInitDescriptor, DeviceExt},
+    wgt::CommandEncoderDescriptor,
 };
 use winit::{
     application::ApplicationHandler, dpi::PhysicalSize, event::WindowEvent, window::Window,
@@ -29,7 +36,31 @@ struct Rendering {
     device: Device,
     queue: Queue,
     config: SurfaceConfiguration,
+    render_pipeline: RenderPipeline,
+    vertex_buffer: Buffer,
 }
+
+#[repr(C)]
+#[derive(Clone, Copy, Debug, Pod, Zeroable)]
+struct BasicPipelineVertex {
+    position: [f32; 3],
+    color: [f32; 3],
+}
+
+const VERTICES: &[BasicPipelineVertex] = &[
+    BasicPipelineVertex {
+        position: [0.0, 0.5, 0.0],
+        color: [1.0, 0.0, 0.0],
+    },
+    BasicPipelineVertex {
+        position: [-0.5, -0.5, 0.0],
+        color: [0.0, 1.0, 0.0],
+    },
+    BasicPipelineVertex {
+        position: [0.5, -0.5, 0.0],
+        color: [0.0, 0.0, 1.0],
+    },
+];
 
 impl ApplicationHandler for AppState {
     fn resumed(&mut self, event_loop: &winit::event_loop::ActiveEventLoop) {
@@ -134,6 +165,61 @@ impl Rendering {
             desired_maximum_frame_latency: 2,
         };
 
+        let shader = device.create_shader_module(ShaderModuleDescriptor {
+            label: Some("Basic Shader"),
+            source: ShaderSource::Wgsl(include_str!("shaders/basic.wgsl").into()),
+        });
+
+        let render_pipeline_layout = device.create_pipeline_layout(&PipelineLayoutDescriptor {
+            label: Some("Basic Pipeline Layout"),
+            bind_group_layouts: &[],
+            push_constant_ranges: &[],
+        });
+
+        let render_pipeline = device.create_render_pipeline(&RenderPipelineDescriptor {
+            label: Some("Basic Render Pipeline"),
+            layout: Some(&render_pipeline_layout),
+            vertex: VertexState {
+                module: &shader,
+                entry_point: Some("vs_main"),
+                buffers: &[BasicPipelineVertex::desc()],
+                compilation_options: PipelineCompilationOptions::default(),
+            },
+            fragment: Some(FragmentState {
+                module: &shader,
+                entry_point: Some("fs_main"),
+                targets: &[Some(ColorTargetState {
+                    format: config.format,
+                    blend: Some(BlendState::REPLACE),
+                    write_mask: ColorWrites::ALL,
+                })],
+                compilation_options: PipelineCompilationOptions::default(),
+            }),
+            primitive: PrimitiveState {
+                topology: PrimitiveTopology::TriangleList,
+                strip_index_format: None,
+                front_face: FrontFace::Ccw,
+                cull_mode: Some(Face::Back),
+                polygon_mode: PolygonMode::Fill,
+                unclipped_depth: false,
+                conservative: false,
+            },
+            depth_stencil: None,
+            multisample: MultisampleState {
+                count: 1,
+                mask: !0,
+                alpha_to_coverage_enabled: false,
+            },
+            multiview: None,
+            cache: None,
+        });
+
+        let vertex_buffer = device.create_buffer_init(&BufferInitDescriptor {
+            label: Some("Example Vertex Buffer"),
+            contents: cast_slice(VERTICES),
+            usage: BufferUsages::VERTEX,
+        });
+
         Self {
             window: window.clone(),
             surface,
@@ -141,6 +227,8 @@ impl Rendering {
             device,
             queue,
             config,
+            render_pipeline,
+            vertex_buffer,
         }
     }
 
@@ -171,7 +259,7 @@ impl Rendering {
             });
 
         {
-            let _render_pass = encoder.begin_render_pass(&RenderPassDescriptor {
+            let mut render_pass = encoder.begin_render_pass(&RenderPassDescriptor {
                 label: Some("Render Pass"),
                 color_attachments: &[Some(RenderPassColorAttachment {
                     view: &view,
@@ -190,9 +278,34 @@ impl Rendering {
                 occlusion_query_set: None,
                 timestamp_writes: None,
             });
+
+            render_pass.set_pipeline(&self.render_pipeline);
+            render_pass.set_vertex_buffer(0, self.vertex_buffer.slice(..));
+            render_pass.draw(0..(VERTICES.len() as u32), 0..1);
         }
 
         self.queue.submit(std::iter::once(encoder.finish()));
         output.present();
+    }
+}
+
+impl BasicPipelineVertex {
+    fn desc() -> VertexBufferLayout<'static> {
+        VertexBufferLayout {
+            array_stride: std::mem::size_of::<BasicPipelineVertex>() as BufferAddress,
+            step_mode: VertexStepMode::Vertex,
+            attributes: &[
+                VertexAttribute {
+                    offset: 0,
+                    shader_location: 0,
+                    format: VertexFormat::Float32x3,
+                },
+                VertexAttribute {
+                    offset: std::mem::size_of::<[f32; 3]>() as BufferAddress,
+                    shader_location: 1,
+                    format: VertexFormat::Float32x3,
+                },
+            ],
+        }
     }
 }
