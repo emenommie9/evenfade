@@ -5,11 +5,15 @@ use winit::{
 
 use crate::app::App;
 
+/// Keeps track of when the window has been resumed by winit.
 pub enum AppState {
+    /// The window is not yet shown (resumed has not been called by winit yet).
     Uninitialized,
+    /// The window is shown (resumed has been called by winit). The application has been initialized.
     Initialized { app: App },
 }
 
+/// Handles lifecycle events from winit.
 impl ApplicationHandler for AppState {
     fn resumed(&mut self, event_loop: &ActiveEventLoop) {
         let app = App::initialize(event_loop);

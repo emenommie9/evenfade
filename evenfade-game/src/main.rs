@@ -8,6 +8,7 @@ mod app;
 mod app_state;
 mod rendering;
 
+/// Main entry point to the game, creates an event loop and lets app_state handle the lifecycle events.
 fn main() {
     let env = Env::new().filter_or("RUST_LOG", "info");
     Builder::from_env(env).init();

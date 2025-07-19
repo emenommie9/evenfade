@@ -8,6 +8,7 @@ use wgpu::{
 };
 use winit::{dpi::PhysicalSize, window::Window};
 
+/// Handles setup of wgpu and the entry point to the per-frame drawing.
 pub struct Rendering {
     window: Arc<Window>,
     surface: Surface<'static>,
@@ -17,6 +18,7 @@ pub struct Rendering {
 }
 
 impl Rendering {
+    /// Initialize wgpu for the given window with default settings.
     pub async fn initialize(window: Arc<Window>) -> Self {
         let instance = Instance::new(&InstanceDescriptor {
             backends: Backends::PRIMARY,
@@ -75,6 +77,7 @@ impl Rendering {
         }
     }
 
+    /// Handle a window resize by reconfiguring the surface.
     pub fn window_resized(&mut self, physical_size: PhysicalSize<u32>) {
         self.config.width = physical_size.width;
         self.config.height = physical_size.height;
@@ -82,6 +85,7 @@ impl Rendering {
         self.surface.configure(&self.device, &self.config);
     }
 
+    /// Render a frame to the screen.
     pub fn render(&mut self) {
         self.window.request_redraw();
 

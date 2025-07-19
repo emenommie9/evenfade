@@ -9,6 +9,7 @@ use winit::{
 
 use crate::rendering::rendering::Rendering;
 
+/// Keeps track of all main components of the game such as the window and all subsystems.
 pub struct App {
     #[allow(dead_code)]
     window: Arc<Window>,
@@ -16,6 +17,7 @@ pub struct App {
 }
 
 impl App {
+    /// Initialize the game, create a window and create subsystems.
     pub fn initialize(event_loop: &ActiveEventLoop) -> Self {
         let window_attributes = Window::default_attributes().with_title("Evenfade");
 
@@ -28,6 +30,7 @@ impl App {
         Self { window, rendering }
     }
 
+    /// Handle a window event from winit and delegate the events to the appropriate subsystems.
     pub fn window_event(
         &mut self,
         event_loop: &ActiveEventLoop,
