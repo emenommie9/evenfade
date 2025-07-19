@@ -2,9 +2,11 @@ use env_logger::{Builder, Env};
 use log::info;
 use winit::event_loop::{ControlFlow, EventLoop};
 
-use crate::app::AppState;
+use crate::app_state::AppState;
 
 mod app;
+mod app_state;
+mod rendering;
 
 fn main() {
     let env = Env::new().filter_or("RUST_LOG", "info");
