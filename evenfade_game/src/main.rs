@@ -1,5 +1,9 @@
 use bevy::{log::LogPlugin, prelude::*};
 
+use crate::game_plugin::GamePlugin;
+
+mod game_plugin;
+
 /// Main entry point to the game, setup the bevy app.
 fn main() {
     App::new()
@@ -8,5 +12,6 @@ fn main() {
             level: bevy::log::Level::DEBUG,
             custom_layer: |_| None,
         }))
+        .add_plugins(GamePlugin)
         .run();
 }
