@@ -3,6 +3,8 @@ use bevy::{log::LogPlugin, prelude::*};
 use crate::game_plugin::GamePlugin;
 
 mod game_plugin;
+mod global_state;
+mod initial_loading;
 
 /// Main entry point to the game, setup the bevy app.
 fn main() {
