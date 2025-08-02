@@ -17,7 +17,7 @@ pub fn setup(mut commands: Commands, asset_server: Res<AssetServer>) {
         timer: Timer::new(Duration::from_secs(5), TimerMode::Once),
     });
 
-    commands.spawn(Camera2d);
+    commands.spawn((Camera2d, InitialLoading));
     commands.spawn((
         Text::new("Loading... Φόρτωση..."),
         TextFont {
