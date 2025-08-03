@@ -2,6 +2,7 @@ use bevy::{log::LogPlugin, prelude::*};
 
 use crate::game_plugin::GamePlugin;
 
+mod adventure_init;
 mod game_plugin;
 mod global_state;
 mod initial_loading;

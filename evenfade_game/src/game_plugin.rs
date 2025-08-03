@@ -1,6 +1,7 @@
 use bevy::input_focus::{InputDispatchPlugin, tab_navigation::*};
 use bevy::prelude::*;
 
+use crate::adventure_init::{self, AdventureInitState};
 use crate::global_state::GlobalState;
 use crate::main_menu::MainMenuButtonClicked;
 use crate::{initial_loading, main_menu};
@@ -38,6 +39,25 @@ impl Plugin for GamePlugin {
                 main_menu::check_button_clicked,
             )
                 .run_if(in_state(GlobalState::MainMenu)),
+        );
+
+        app.add_systems(OnExit(GlobalState::MainMenu), main_menu::despawn);
+
+        app.insert_resource(AdventureInitState::PreOrPostInit);
+
+        app.add_systems(
+            OnEnter(GlobalState::AdventureLoading),
+            adventure_init::setup,
+        );
+
+        app.add_systems(
+            FixedUpdate,
+            adventure_init::check_done_loading.run_if(in_state(GlobalState::AdventureLoading)),
+        );
+
+        app.add_systems(
+            OnExit(GlobalState::AdventureLoading),
+            adventure_init::despawn,
         );
     }
 }

@@ -5,4 +5,6 @@ pub enum GlobalState {
     #[default]
     InitialLoading,
     MainMenu,
+    AdventureLoading,
+    AdventurePlaying,
 }

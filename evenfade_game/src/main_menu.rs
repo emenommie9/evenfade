@@ -1,6 +1,9 @@
 use bevy::input_focus::{InputFocus, tab_navigation::*};
 use bevy::prelude::*;
 
+use crate::adventure_init::{AdventureInitParams, AdventureInitState};
+use crate::global_state::GlobalState;
+
 #[derive(Component)]
 pub struct MainMenu;
 
@@ -161,6 +164,8 @@ pub fn check_keyboard_click(
 pub fn check_button_clicked(
     mut button_clicked_reader: EventReader<MainMenuButtonClicked>,
     mut exit_writer: EventWriter<AppExit>,
+    mut next_state: ResMut<NextState<GlobalState>>,
+    mut adventure_load_state: ResMut<AdventureInitState>,
 ) {
     for event in button_clicked_reader.read() {
         match event.0 {
@@ -168,7 +173,19 @@ pub fn check_button_clicked(
                 exit_writer.write(AppExit::Success);
                 ()
             }
+            MainMenuButtonAction::NewGame => {
+                *adventure_load_state = AdventureInitState::Init(AdventureInitParams {
+                    adventure_to_init: "adventures/example.adv".into(),
+                });
+                next_state.set(GlobalState::AdventureLoading);
+            }
             _ => (),
         }
+    }
+}
+
+pub fn despawn(mut commands: Commands, q: Query<Entity, With<MainMenu>>) {
+    for e in q.iter() {
+        commands.entity(e).despawn();
     }
 }
