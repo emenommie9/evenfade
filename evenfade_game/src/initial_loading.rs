@@ -19,7 +19,7 @@ pub fn setup(mut commands: Commands, asset_server: Res<AssetServer>) {
 
     commands.spawn((Camera2d, InitialLoading));
     commands.spawn((
-        Text::new("Loading... Φόρτωση..."),
+        Text::new("Loading..."),
         TextFont {
             font: asset_server.load("fonts/NotoSans-Regular.ttf"),
             font_size: 64.0,
