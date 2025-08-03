@@ -14,7 +14,7 @@ pub struct MinimumLoadTimer {
 
 pub fn setup(mut commands: Commands, asset_server: Res<AssetServer>) {
     commands.insert_resource(MinimumLoadTimer {
-        timer: Timer::new(Duration::from_secs(5), TimerMode::Once),
+        timer: Timer::new(Duration::from_secs(0), TimerMode::Once),
     });
 
     commands.spawn((Camera2d, InitialLoading));
